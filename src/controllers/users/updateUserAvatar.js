@@ -1,7 +1,8 @@
 import { User } from "../../models/user.model.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../../utils/cloudinary";
+import { deleteOnCloudinary, uploadOnCloudinary } from "../../utils/cloudinary.js";
 
 const updateUserAvatar = asyncHandler(async(req,res)=>{
     const avatarLocalPath = req.file?.path;
@@ -9,6 +10,11 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
     if(!avatarLocalPath){
         throw new ApiError(400,"File is missing");
     }
+
+    const userData = await User.findOne(req?.user._id);
+
+    const oldAvatar = await deleteOnCloudinary(userData?.avatar);
+
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 

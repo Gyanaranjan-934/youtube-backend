@@ -27,9 +27,43 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 }
 
+function getPublicIdFromUrl(url) {
+  const matches = url.match(/\/v\d+\/([^/]+)\.\w+$/);
+  if (matches && matches[1]) {
+    return matches[1];
+  }
+  return null;
+}
 
+const deleteOnCloudinary = async (filePath) => {
+  try {
+    const publicId = getPublicIdFromUrl(filePath);
+    // Assuming cloudinary is properly configured somewhere in your code.
+    const response = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "image"
+    });
+    if (response.result === 'ok') {
+      console.log("File deleted successfully", response);
+      return response;
+    } else {
+      console.log("File deletion failed. Cloudinary response:", response);
+      return null;
+    }
+  } catch (error) {
+    // Handle specific errors or log the general error.
+    if (error.http_code === 404) {
+      console.log("File not found on Cloudinary");
+    } else {
+      console.error("Error deleting file on Cloudinary", error);
+    }
+    return null;
+  }
+};
 // cloudinary.v2.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
 //   { public_id: "olympic_flag" },
 //   function (error, result) { console.log(result); });
 
-export {uploadOnCloudinary}
+export {
+  uploadOnCloudinary,
+  deleteOnCloudinary
+}
